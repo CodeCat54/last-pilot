@@ -1,0 +1,323 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Last Pilot</title>
+    <script src="phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.AUTO,
+    width: 1920,
+    height: 1080,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+var player;
+var enemies;
+var bullets;
+var score = 0;
+var lives = 3;
+var bombs = 4;
+var gameOver = false;
+var scoreText;
+var boss_active = false;
+var score_milestone = 1000;
+var milestone_addition = 0;
+var spawnTimer;
+// Movement variables
+let keySpace;
+let keyShift;
+
+var game = new Phaser.Game(config);
+
+class shipObject {
+    ship;
+    health = 20;
+    createShip(x, y, scene) {
+        var ship = enemies.create(x, y, 'enemyShip');
+
+        // Shoot until dead
+        setTimeout(this.shoot, 1000);
+    }
+
+    shoot() {
+        var dirX = 500;
+        var dirY = 0;
+        var bullet = bullets.create(this.x, this.y + 15, 'bulletMedium');
+        bullet.setVelocityX(dirX);
+        bullet.setVelocityY(dirY);
+        dirX = 0;
+        dirY = 500;
+        var bullet = bullets.create(this.x, this.y + 15, 'bulletMedium');
+        bullet.setVelocityX(dirX);
+        bullet.setVelocityY(dirY);
+        dirX = -500;
+        dirY = 0;
+        var bullet = bullets.create(this.x, this.y + 15, 'bulletMedium');
+        bullet.setVelocityX(dirX);
+        bullet.setVelocityY(dirY);
+        setTimeout(this.shoot, 1000)
+    }
+}
+
+class gunnerObject {
+    gunner;
+    health = 15;
+    createGunner(x, y, scene) {
+        var gunner = enemies.create(x, y, 'enemyGunner');
+
+        // Shoot until dead
+        setTimeout(this.shoot, 500)
+    }
+    
+    shoot() {
+        var dirX = 0;
+        var dirY = 500;
+        var bullet = bullets.create(this.x, this.y + 15, 'bulletSmall');
+        bullet.setVelocityX(dirX);
+        bullet.setVelocityY(dirY);
+        setTimeout(this.shoot, 500)
+    }
+}
+
+class orbObject {
+    orb;
+    health = 30;
+    createOrb(x, y, scene) {
+        var orb = enemies.create(x, y, 'enemyOrb');
+
+        // Shoot until dead
+        setTimeout(this.shoot, 666)
+    }
+    
+    shoot() {
+        var dirX = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirX *= -1 : dirX = dirX;
+        var dirY = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirY *= -1 : dirY = dirY;
+        var bullet = bullets.create(this.x, this.y + 15, 'bulletLarge');
+        bullet.setVelocityX(dirX);
+        bullet.setVelocityY(dirY);
+        setTimeout(this.shoot, 666)
+    }
+}
+
+
+class debrisObject {
+    debris;
+    opacity = 1;
+    createDebris(enemy, scene) {
+        // Death effect group
+        this.debris = scene.physics.add.group();
+        var debris = this.debris.create(enemy.x, enemy.y, 'debris');
+
+        // Random direction
+        var dirX = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirX *= -1 : dirX = dirX;
+        var dirY = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirY *= -1 : dirY = dirY;
+        debris.setVelocityX(dirX).setVelocityY(dirY);
+
+        // Call reduce alpha until it's 0
+        /*scene.time.addEvent({
+            delay: 10,
+            callback: this.reduceAlpha,
+            args: debris,
+            repeat: 100,
+        })*/
+    }
+
+    // Lower opacity by 0.01 until it's gone
+    /*reduceAlpha(debris) {
+        this.debris.style.opacity -= 0.01
+        if (this.debris.style.opacity <= 0) {
+            delete this;
+        }
+    }*/
+}
+
+function preload ()
+{
+    this.load.image('player', 'assets/player.png');
+    this.load.image('shot', 'assets/shot.png');
+    this.load.image('enemyShip', 'assets/enemyShip.png');
+    this.load.image('enemyGunner', 'assets/enemyGunner.png');
+    this.load.image('enemyOrb', 'assets/enemyOrb.png');
+    this.load.image('debris', 'assets/debris.png');
+    this.load.image('bulletSmall', 'assets/bulletSmall.png');
+    this.load.image('bulletMedium', 'assets/bulletMedium.png');
+    this.load.image('bulletLarge', 'assets/bulletLarge.png');
+}
+
+function spawnEnemies() {
+    /*
+    if (room != rm_game) {
+	    exit;
+    }
+
+    if (boss_active = false) {
+        if (score >= score_milestone) {
+            boss_active = true;
+            var x = 640;
+            var y = 80;
+            var ship_type = choose("Destroyer");
+            switch (ship_type) {
+                case "Destroyer":
+                    newDestroyer = new destroyerObject();
+                    newDestroyer.createDestroyer(x, y);
+                    break;
+            }
+        }
+        else {*/
+            var x = Phaser.Math.Between(32,1888);
+            var y = 40;
+            var ships = ["Ship","Gunner","Orb"];
+            var shipType = ships[Math.random() * ships.length | 0]
+            switch (shipType) {
+                case "Ship":
+                    newShip = new shipObject();
+                    newShip.createShip(x, y, this);
+                    return newShip;
+        
+                case "Gunner":
+                    newShip = new gunnerObject();
+                    newShip.createGunner(x, y, this);
+                    return newShip;
+        
+                case "Orb":
+                    newShip = new orbObject();
+                    newShip.createOrb(x, y, this);
+                    return newShip;
+            }   
+        }
+        /*
+    }
+}
+*/
+function enemyShot(enemy)
+{
+    var bullet = bullets.create(enemy.x, enemy.y + 15)
+    bullet.setVelocityY(500);
+}
+
+function create ()
+{
+
+    // A group to handle bullet collisions
+    bullets = this.physics.add.group();
+
+    // Enemy group
+    enemies = this.physics.add.staticGroup();
+
+    // Player creation and collision
+    player = this.physics.add.sprite(960, 100, 'player');
+    player.setCollideWorldBounds(true);
+
+    // Input Events
+    cursors = this.input.keyboard.createCursorKeys();
+    keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
+
+    // Display score
+    scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+    // Collide the player and enemies with bullets
+    this.physics.add.overlap(player, bullets, hitBullet, null, this);
+    this.physics.add.overlap(enemies, bullets, hitEnemy, null, this);
+
+    // Enemy spawn loop
+    newShip = this.time.addEvent({
+        delay: 3000,
+        callback: spawnEnemies,
+        loop: true
+    })
+
+}
+
+function update ()
+{
+    // If game over, don't allow player movement
+    if (gameOver)
+    {
+        return;
+    }
+    
+    // Player movement
+    if (keyShift.isDown) {
+        player.setVelocityX(-200*(cursors.left.isDown-cursors.right.isDown))
+        player.setVelocityY(-200*(cursors.up.isDown-cursors.down.isDown))
+    }
+    else {
+        player.setVelocityX(-400*(cursors.left.isDown-cursors.right.isDown))
+        player.setVelocityY(-400*(cursors.up.isDown-cursors.down.isDown))
+    }
+    
+    // Shoot bullets
+    if (keySpace.isDown)
+    {
+        var bullet = bullets.create(player.x, player.y-15, 'shot');
+        bullet.setVelocityY(-400);
+    }
+}
+
+function hitEnemy (enemy, bullet)
+{
+    console.log("Test)")
+    // Delete bullet, lower enemy health by 1
+    bullet.destroy();
+    enemy.health -= 1;
+
+    // A successful shot gives 1 point - a successful kill gives an extra 5
+    score += 1;
+    if (enemy.health == 0)
+    {
+        enemy.destroy();
+        score += 5;
+        for (debs = 0; debs < 5; debs++) {
+            newDebris = new debrisObject();
+            newDebris.createDebris(enemy, this);
+        }
+    }
+    scoreText.setText('Score: ' + score);
+}
+
+
+function hitBullet (player, bomb)
+{
+    // Pause the game for 2 seconds, kill the player, respawn the player
+    this.physics.pause();
+    lives -= 1;
+    player.disableBody(true, true);
+
+    // Spawn 5 debris in random directions from the player's corpse
+
+    if (lives == 0)
+    {
+        gameOver = true;
+    }
+}
+
+</script>
+
+</body>
+</html>
