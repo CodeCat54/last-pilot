@@ -197,17 +197,17 @@ function spawnEnemies() {
                 case "Ship":
                     newShip = new shipObject();
                     newShip.createShip(x, y, this);
-                    return newShip;
+                    break;
         
                 case "Gunner":
-                    newShip = new gunnerObject();
-                    newShip.createGunner(x, y, this);
-                    return newShip;
+                    newGunner = new gunnerObject();
+                    newGunner.createGunner(x, y, this);
+                    break;
         
                 case "Orb":
-                    newShip = new orbObject();
-                    newShip.createOrb(x, y, this);
-                    return newShip;
+                    newOrb = new orbObject();
+                    newOrb.createOrb(x, y, this);
+                    break;
             }   
         }
         /*
@@ -246,7 +246,7 @@ function create ()
     this.physics.add.overlap(enemies, bullets, hitEnemy, null, this);
 
     // Enemy spawn loop
-    newShip = this.time.addEvent({
+    this.time.addEvent({
         delay: 3000,
         callback: spawnEnemies,
         loop: true
