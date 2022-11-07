@@ -57,12 +57,13 @@ class shipObject {
         var ship = enemies.create(x, y, 'enemyShip');
 
         // Shoot until dead
-        setTimeout(this.shoot, 1000);
+        setTimeout(this.shoot, 1000, scene);
     }
 
-    shoot() {
+    shoot(scene) {
         var dirX = 500;
         var dirY = 0;
+        bullets = scene.physics.add.group();
         var bullet = bullets.create(this.x, this.y + 15, 'bulletMedium');
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
@@ -76,7 +77,7 @@ class shipObject {
         var bullet = bullets.create(this.x, this.y + 15, 'bulletMedium');
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
-        setTimeout(this.shoot, 1000)
+        setTimeout(this.shoot, 1000, scene)
     }
 }
 
@@ -87,16 +88,17 @@ class gunnerObject {
         var gunner = enemies.create(x, y, 'enemyGunner');
 
         // Shoot until dead
-        setTimeout(this.shoot, 500)
+        setTimeout(this.shoot, 500, scene)
     }
     
-    shoot() {
+    shoot(scene) {
         var dirX = 0;
         var dirY = 500;
+        bullets = scene.physics.add.group();
         var bullet = bullets.create(this.x, this.y + 15, 'bulletSmall');
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
-        setTimeout(this.shoot, 500)
+        setTimeout(this.shoot, 500, scene)
     }
 }
 
@@ -107,18 +109,19 @@ class orbObject {
         var orb = enemies.create(x, y, 'enemyOrb');
 
         // Shoot until dead
-        setTimeout(this.shoot, 666)
+        setTimeout(this.shoot, 666, scene)
     }
     
-    shoot() {
+    shoot(scene) {
         var dirX = Phaser.Math.Between(0,100);
         Math.floor(Math.random() * 100) % 2 == 1 ? dirX *= -1 : dirX = dirX;
         var dirY = Phaser.Math.Between(0,100);
         Math.floor(Math.random() * 100) % 2 == 1 ? dirY *= -1 : dirY = dirY;
+        bullets = scene.physics.add.group();
         var bullet = bullets.create(this.x, this.y + 15, 'bulletLarge');
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
-        setTimeout(this.shoot, 666)
+        setTimeout(this.shoot, 666, scene)
     }
 }
 
@@ -192,7 +195,9 @@ function spawnEnemies() {
             var x = Phaser.Math.Between(32,1888);
             var y = 40;
             var ships = ["Ship","Gunner","Orb"];
+            // Choose random ship
             var shipType = ships[Math.random() * ships.length | 0]
+            // Spawn only one ship
             switch (shipType) {
                 case "Ship":
                     newShip = new shipObject();
@@ -286,6 +291,7 @@ function hitEnemy (enemy, bullet)
     // Delete bullet, lower enemy health by 1
     bullet.destroy();
     enemy.health -= 1;
+    console.log(enemy.health);
 
     // A successful shot gives 1 point - a successful kill gives an extra 5
     score += 1;
