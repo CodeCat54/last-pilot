@@ -52,14 +52,20 @@ function preload ()
 }
 
 
-function spawnBullets() {
-    var x = Phaser.Math.Between(32,1888);
-    var y = 40;
+function spawnBullets () {
+        var x = Phaser.Math.Between(32,1888);
+        var y = 40;
+        var dirX = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirX *= -1 : dirX = dirX;
+        var dirY = Phaser.Math.Between(0,100);
+        Math.floor(Math.random() * 100) % 2 == 1 ? dirY *= -1 : dirY = dirY;
+        var bullet = bullets.create(x, y + 15, 'bulletLarge');
+        bullet.setVelocityX = dirX;
+        bullet.setVelocityY = dirY;
 }
 
 
-function create ()
-{
+function create () {
 
     // A group to handle bullet collisions
     bullets = this.physics.add.group();
@@ -105,7 +111,9 @@ function update ()
         player.setVelocityX(-400*(cursors.left.isDown-cursors.right.isDown))
         player.setVelocityY(-400*(cursors.up.isDown-cursors.down.isDown))
     }
-    
+    score += 0.1
+    scoreText.setText('Score: ' + score);
+
 }
 
 
