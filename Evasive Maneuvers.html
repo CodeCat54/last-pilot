@@ -53,25 +53,49 @@ function preload ()
 
 
 function spawnBullets () {
-        var x = Phaser.Math.Between(32,1888);
-        var y = 40;
-        var dirX = Phaser.Math.Between(0,100);
-        Math.floor(Math.random() * 100) % 2 == 1 ? dirX *= -1 : dirX = dirX;
-        var dirY = Phaser.Math.Between(0,100);
-        Math.floor(Math.random() * 100) % 2 == 1 ? dirY *= -1 : dirY = dirY;
-        var bullet = bullets.create(x, y + 15, 'bulletLarge');
-        bullet.setVelocityX = dirX;
-        bullet.setVelocityY = dirY;
+    // If game over, don't spawn bullets
+    if (gameOver) {
+        return;
+    }
+    //Spawn randomly at the top of the screen
+    var x = Phaser.Math.Between(0,1920);
+
+    // Assign random direction as a function of angle; always point downwards or down-diagonal 
+    var degrees = Phaser.Math.Between(135,225);
+    var angle = degrees * (Math.PI/180);
+    var dirX = -(Math.sin(angle)) * 300;
+    var dirY = -(Math.cos(angle)) * 300;
+    var sizes = ["Small","Medium","Large"];
+
+    // Choose random bullet size
+    var bulletType = sizes[Math.random() * sizes.length | 0];
+
+    // Break to avoid spawning multiple bullets at once
+    switch (bulletType) {
+        case "Small":
+            bulletSize = 'bulletSmall';
+            break;
+        
+        case "Medium":
+            bulletSize = 'bulletMedium';
+            break;
+        
+        case "Large":
+            bulletSize = 'bulletLarge';
+            break;
+    }
+    var bullet = bullets.create(x, 0, bulletSize);
+    bullet.setVelocityX(dirX);
+    bullet.setVelocityY(dirY);
 }
 
 
 function create () {
-
-    // A group to handle bullet collisions
+    // Bullet collision group
     bullets = this.physics.add.group();
 
     // Player creation and collision
-    player = this.physics.add.sprite(960, 100, 'player');
+    player = this.physics.add.sprite(960, 900, 'player');
     player.setCollideWorldBounds(true);
 
     // Input Events
@@ -79,23 +103,21 @@ function create () {
     keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
 
     // Display score
-    scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+    scoreText = this.add.text(0, 0, 'score: 0', { fontSize: '32px', fill: '#255' });
 
-    // Collide the player and enemies with bullets
+    // Collide the player with bullets
     this.physics.add.overlap(player, bullets, hitBullet, null, this);
 
-    // Enemy spawn loop
+    // Bullet spawn loop
     this.time.addEvent({
-        delay: 3000,
+        delay: 100 - (score/10),
         callback: spawnBullets,
         loop: true
     })
-
 }
 
 
-function update ()
-{
+function update () {
     // If game over, don't allow player movement
     if (gameOver)
     {
@@ -112,16 +134,15 @@ function update ()
         player.setVelocityY(-400*(cursors.up.isDown-cursors.down.isDown))
     }
     score += 0.1
-    scoreText.setText('Score: ' + score);
-
+    scoreText.setText('Score: ' + Math.round(score));
 }
 
 
-function hitBullet (player, bullet)
-{
-    // Pause the game for 2 seconds, kill the player, respawn the player
+function hitBullet (player, bullet) {
+    // Disable game physics, destroy the player, stop bullet spawning
     this.physics.pause();
-    player.disableBody(true, true);
+    player.destroy();
+    gameOver = true;
 
 }
 
