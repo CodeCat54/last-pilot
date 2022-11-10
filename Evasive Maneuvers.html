@@ -33,7 +33,7 @@ var config = {
 };
 
 var player;
-var score = 0;
+var score = 800;
 var gameOver = false;
 var bullets;
 
@@ -48,7 +48,11 @@ function preload ()
     this.load.image('player', 'assets/player.png');
     this.load.image('bullet8', 'assets/bullet8.png');
     this.load.image('bullet16', 'assets/bullet16.png');
+    this.load.image('bullet24', 'assets/bullet24.png');
     this.load.image('bullet32', 'assets/bullet32.png');
+    this.load.image('bullet40', 'assets/bullet40.png');
+    this.load.image('bullet48', 'assets/bullet48.png');
+    this.load.image('bullet56', 'assets/bullet56.png');
     this.load.image('bullet64', 'assets/bullet64.png');
 }
 
@@ -91,28 +95,40 @@ function spawnBullets () {
     var dirX = -(Math.sin(angle)) * 300;
     var dirY = -(Math.cos(angle)) * 300;
 
-    // Every 100 score, add the next bullet size up
+    // Every 100 score, add the next bullet size up to the random pool
     if(score < 100) {
         var sizes = ["8"];
     }
 
     else if((score > 100) && (score < 200)) {
-        var sizes = ["8", "32"];
+        var sizes = ["8", "16"];
     }
 
     else if((score > 200) && (score < 300)) {
-        var sizes = ["8", "16", "32"];
+        var sizes = ["8", "16", "24"];
+    }
+
+    else if((score > 300) && (score < 400)) {
+        var sizes = ["8", "16", "24", "32"];
+    }
+
+    else if((score > 400) && (score < 500)) {
+        var sizes = ["8", "16", "24", "32", "40"];
+    }
+
+    else if((score > 500) && (score < 600)) {
+        var sizes = ["8", "16", "24", "32", "40", "48"];
     }
 
     else {
-        var sizes = ["8", "16", "32", "64"];
+        var sizes = ["8", "16", "24", "32", , "40", "48", "64"];
     }
     
 
     // Choose random bullet size
     var bulletType = sizes[Math.random() * sizes.length | 0];
 
-    // Break to avoid spawning multiple bullets at once
+    // Pick random bullet to spawn from available; break to avoid spawning multiple bullets at once
     switch (bulletType) {
         case "8":
             bulletSize = 'bullet8';
@@ -120,13 +136,25 @@ function spawnBullets () {
             break;
         
         case "16":
-            bulletSize = 'bullet8';
+            bulletSize = 'bullet16';
+            break;
+
+        case "24":
+            bulletSize = 'bullet24';
             break;
 
         case "32":
             bulletSize = 'bullet32';
             break;
         
+        case "40":
+            bulletSize = 'bullet40';
+            break;
+
+        case "48":
+            bulletSize = 'bullet48';
+            break;
+
         case "64":
             bulletSize = 'bullet64';
             break;
