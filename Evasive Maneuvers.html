@@ -46,9 +46,10 @@ var game = new Phaser.Game(config);
 function preload ()
 {
     this.load.image('player', 'assets/player.png');
-    this.load.image('bulletSmall', 'assets/bulletSmall.png');
-    this.load.image('bulletMedium', 'assets/bulletMedium.png');
-    this.load.image('bulletLarge', 'assets/bulletLarge.png');
+    this.load.image('bullet8', 'assets/bullet8.png');
+    this.load.image('bullet16', 'assets/bullet16.png');
+    this.load.image('bullet32', 'assets/bullet32.png');
+    this.load.image('bullet64', 'assets/bullet64.png');
 }
 
 
@@ -80,6 +81,7 @@ function spawnBullets () {
     if (gameOver) {
         return;
     }
+
     //Spawn randomly at the top of the screen
     var x = Phaser.Math.Between(0,1920);
 
@@ -88,17 +90,22 @@ function spawnBullets () {
     var angle = degrees * (Math.PI/180);
     var dirX = -(Math.sin(angle)) * 300;
     var dirY = -(Math.cos(angle)) * 300;
-    console.log(score);
+
+    // Every 100 score, add the next bullet size up
     if(score < 100) {
-        var sizes = ["Small"];
+        var sizes = ["8"];
     }
 
     else if((score > 100) && (score < 200)) {
-        var sizes = ["Small","Medium"];
+        var sizes = ["8", "32"];
+    }
+
+    else if((score > 200) && (score < 300)) {
+        var sizes = ["8", "16", "32"];
     }
 
     else {
-        var sizes = ["Small","Medium", "Large"];
+        var sizes = ["8", "16", "32", "64"];
     }
     
 
@@ -107,16 +114,21 @@ function spawnBullets () {
 
     // Break to avoid spawning multiple bullets at once
     switch (bulletType) {
-        case "Small":
-            bulletSize = 'bulletSmall';
+        case "8":
+            bulletSize = 'bullet8';
+            console.log(bulletSize)
             break;
         
-        case "Medium":
-            bulletSize = 'bulletMedium';
+        case "16":
+            bulletSize = 'bullet8';
+            break;
+
+        case "32":
+            bulletSize = 'bullet32';
             break;
         
-        case "Large":
-            bulletSize = 'bulletLarge';
+        case "64":
+            bulletSize = 'bullet64';
             break;
     }
     var bullet = bullets.create(x, 0, bulletSize);
