@@ -52,6 +52,29 @@ function preload ()
 }
 
 
+function create () {
+    // Bullet collision group
+    bullets = this.physics.add.group();
+
+    // Player creation and collision
+    player = this.physics.add.sprite(960, 900, 'player');
+    player.setCollideWorldBounds(true);
+
+    // Input Events
+    cursors = this.input.keyboard.createCursorKeys();
+    keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
+
+    // Display score
+    scoreText = this.add.text(0, 0, 'score: 0', { fontSize: '32px', fill: '#255' });
+
+    // Collide the player with bullets
+    this.physics.add.overlap(player, bullets, hitBullet, null, this);
+
+    // Bullet spawn loop
+    spawnBullets()
+}
+
+
 function spawnBullets () {
     // If game over, don't spawn bullets
     if (gameOver) {
@@ -65,7 +88,19 @@ function spawnBullets () {
     var angle = degrees * (Math.PI/180);
     var dirX = -(Math.sin(angle)) * 300;
     var dirY = -(Math.cos(angle)) * 300;
-    var sizes = ["Small","Medium","Large"];
+    console.log(score);
+    if(score < 100) {
+        var sizes = ["Small"];
+    }
+
+    else if((score > 100) && (score < 200)) {
+        var sizes = ["Small","Medium"];
+    }
+
+    else {
+        var sizes = ["Small","Medium", "Large"];
+    }
+    
 
     // Choose random bullet size
     var bulletType = sizes[Math.random() * sizes.length | 0];
@@ -87,33 +122,9 @@ function spawnBullets () {
     var bullet = bullets.create(x, 0, bulletSize);
     bullet.setVelocityX(dirX);
     bullet.setVelocityY(dirY);
-}
 
-
-function create () {
-    // Bullet collision group
-    bullets = this.physics.add.group();
-
-    // Player creation and collision
-    player = this.physics.add.sprite(960, 900, 'player');
-    player.setCollideWorldBounds(true);
-
-    // Input Events
-    cursors = this.input.keyboard.createCursorKeys();
-    keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
-
-    // Display score
-    scoreText = this.add.text(0, 0, 'score: 0', { fontSize: '32px', fill: '#255' });
-
-    // Collide the player with bullets
-    this.physics.add.overlap(player, bullets, hitBullet, null, this);
-
-    // Bullet spawn loop
-    this.time.addEvent({
-        delay: 100 - (score/10),
-        callback: spawnBullets,
-        loop: true
-    })
+    // Recursively calls itself faster based on score
+    setTimeout(spawnBullets, 100-score/10)
 }
 
 
