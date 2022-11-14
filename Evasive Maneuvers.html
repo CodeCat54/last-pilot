@@ -33,7 +33,7 @@ var config = {
 };
 
 var player;
-var score = 800;
+var score = 0;
 var gameOver = false;
 var bullets;
 var started = false;
@@ -139,7 +139,6 @@ function spawnBullets () {
         switch (bulletType) {
             case "8":
                 bulletSize = 'bullet8';
-                console.log(bulletSize)
                 break;
             
             case "16":
