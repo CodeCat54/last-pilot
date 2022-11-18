@@ -83,18 +83,20 @@ function create () {
     // Display score
     scoreText = this.add.text(0, 0, 'Score: 0', { fontSize: '32px', fill: '#255' });
 
-    // Collide the player with bullets
+    // Collide the player with bullets and stars
     this.physics.add.overlap(player, bullets, hitBullet, null, this);
+    this.physics.add.overlap(player, stars, hitStar, null, this);
 
-    // Bullet spawn loop
+    // Initiate bullet and star loops
     spawnBullets();
+    spawnStars();
 }
 
 
 function spawnBullets () {
     // If game isn't started or player is dead, don't spawn bullets - returning breaks the execution of this since it's only called once
     if (!started || gameOver) {
-        setTimeout(spawnBullets, 100-score/10)
+        setTimeout(spawnBullets, 100-score/20)
     }
 
     else {
@@ -108,27 +110,27 @@ function spawnBullets () {
         var dirY = -(Math.cos(angle)) * 300;
 
         // Every 100 score, add the next bullet size up to the random pool
-        if(score < 100) {
+        if(score < 200) {
             var sizes = ["8"];
         }
 
-        else if(score > 100 && score < 200) {
+        else if(score > 200 && score < 400) {
             var sizes = ["8", "16"];
         }
 
-        else if(score > 200 && score < 300) {
+        else if(score > 400 && score < 600) {
             var sizes = ["8", "16", "24"];
         }
 
-        else if(score > 300 && score < 400) {
+        else if(score > 600 && score < 800) {
             var sizes = ["8", "16", "24", "32"];
         }
 
-        else if(score > 400 && score < 500) {
+        else if(score > 800 && score < 1000) {
             var sizes = ["8", "16", "24", "32", "40"];
         }
 
-        else if(score > 500 && score < 600) {
+        else if(score > 1000 && score < 1500) {
             var sizes = ["8", "16", "24", "32", "40", "48"];
         }
 
@@ -175,7 +177,24 @@ function spawnBullets () {
         bullet.setVelocityY(dirY);
 
         // Recursively calls itself faster based on score
-        setTimeout(spawnBullets, 100-score/10)
+        setTimeout(spawnBullets, 100-score/20)
+    }
+}
+
+function spawnStars () {
+    // If game isn't started or player is dead, don't spawn stars - returning breaks the execution of this since it's only called once
+    if (!started || gameOver) {
+        setTimeout(spawnStars, 3000+score)
+    }
+
+    else {
+        // Spawn randomly anywhere on the screen; not too close to the bullet spawn point or edge borders
+        var x = Phaser.Math.Between(200,1870);
+        var y = Phaser.Math.Between(50,1030);
+        var star = stars.create(x, y, 'star');
+
+        // Recursively calls itself slower based on score
+        setTimeout(spawnStars, 3000+score)
     }
 }
 
@@ -226,9 +245,17 @@ function hitBullet (player, bullet) {
 }
 
 
+function hitStar (player, star) {
+    star.destroy();
+
+    // Stars are worth more based on the player's current score as a hidden mechanic; late-game stars are more valuable but harder to collect
+    score += 10 + (score/50);
+}
+
+
 function displayEnd(scene) {
     end = scene.physics.add.sprite(960, 540, 'screenEnd');
-    scoreText = scene.add.text(600, 750, 'Final score: ' + Math.round(score), { fontSize: '64px', fill: '#150' });
+    scoreText = scene.add.text(650, 750, 'Final score: ' + Math.round(score), { fontSize: '64px', fill: '#150' });
 }
 
 
