@@ -32,23 +32,27 @@ var config = {
     }
 };
 
+var game = new Phaser.Game(config);
+
 var player;
 var score = 0;
 var gameOver = false;
 var bullets;
+var stars;
 var started = false;
+var endDisplay = false;
 
 // Movement variables
 let keyShift;
 let keySpace;
 
-var game = new Phaser.Game(config);
-
 
 function preload ()
 {
     this.load.image('screenStart', 'assets/screenStart.png');
+    this.load.image('screenEnd', 'assets/screenEnd.png');
     this.load.image('player', 'assets/player.png');
+    this.load.image('star', 'assets/star.png');
     this.load.image('bullet8', 'assets/bullet8.png');
     this.load.image('bullet16', 'assets/bullet16.png');
     this.load.image('bullet24', 'assets/bullet24.png');
@@ -60,8 +64,9 @@ function preload ()
 
 
 function create () {
-    // Bullet collision group
+    // Bullet and star collision groups
     bullets = this.physics.add.group();
+    stars = this.physics.add.group();
 
     // Player creation and collision
     player = this.physics.add.sprite(960, 900, 'player');
@@ -76,7 +81,7 @@ function create () {
     keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     // Display score
-    scoreText = this.add.text(0, 0, 'score: 0', { fontSize: '32px', fill: '#255' });
+    scoreText = this.add.text(0, 0, 'Score: 0', { fontSize: '32px', fill: '#255' });
 
     // Collide the player with bullets
     this.physics.add.overlap(player, bullets, hitBullet, null, this);
@@ -177,16 +182,17 @@ function spawnBullets () {
 
 function update () {
     // If game over, don't allow player movement
-    if (gameOver)
-    {
+    if (gameOver) {
         return;
     }
     
-    // Press space to start game, else no movement
+    // Press space to start game, else no movement; play music once space is pressed
     if (!started) {
         if (keySpace.isDown) {
             intro.destroy();
             started = true;
+            var audio = new Audio('assets/mscGame.ogg');
+            audio.play();
         }
 
         else {
@@ -203,16 +209,28 @@ function update () {
         player.setVelocityX(-400*(cursors.left.isDown-cursors.right.isDown))
         player.setVelocityY(-400*(cursors.up.isDown-cursors.down.isDown))
     }
+
+    // Add 0.1 score every step, round to nearest integer and display
     score += 0.1
     scoreText.setText('Score: ' + Math.round(score));
 }
 
 
 function hitBullet (player, bullet) {
-    // Disable game physics, destroy the player, stop bullet spawning
+    // Game over will stop bullets spawning
     player.destroy();
     gameOver = true;
+
+    // 5 seconds after dying (bullet disappearance time) display end screen, show final score
+    setTimeout(displayEnd, 5000, this);
 }
+
+
+function displayEnd(scene) {
+    end = scene.physics.add.sprite(960, 540, 'screenEnd');
+    scoreText = scene.add.text(600, 750, 'Final score: ' + Math.round(score), { fontSize: '64px', fill: '#150' });
+}
+
 
 </script>
 
