@@ -13,13 +13,15 @@ export class GameOver extends Phaser.Scene {
         this.scoreText = this.add.text(650, 750, 'Final score: ' + Math.round(this.score), { fontSize: '64px', fill: '#150' });
 
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.music = new Audio('assets/mscGameOver.ogg');
+        this.music.play();
     }
 
 
     update() {
         if (this.keySpace.isDown) {
             //this.bg.destroy();
-            //this.music.pause();
+            this.music.pause();
             this.scene.start('MainMenu');
         }
     }

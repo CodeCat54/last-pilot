@@ -34,6 +34,7 @@ export class Game extends Phaser.Scene {
 
         // Start music
         this.music = new Audio('assets/mscGame.ogg');
+        this.music.loop = true;
         this.music.play();
 
         // Collide the player with bullets and stars
@@ -73,33 +74,36 @@ export class Game extends Phaser.Scene {
         var sizes = [];
 
         // Difficulty decides bullet size pool
-        console.log(context.difficulty);
-        if(context.difficulty == 0) {
-            sizes = ["8"];
-        }
-        else if(context.difficulty == 1) {
-            sizes = ["8", "16"];
-        }
+        switch(context.difficulty) {
+            case 0:
+                sizes = ["8"];
+                break;
 
-        //     case 2:
-        //         sizes = ["8", "16", "24"];
+            case 1:
+                sizes = ["8", "16"];
+                break;
 
-        //     case 3:
-        //         sizes = ["8", "16", "24", "32"];
+            case 2:
+                sizes = ["8", "16", "24"];
+                break;
 
-        //     case 4:
-        //         sizes = ["8", "16", "24", "32", "40"];
+            case 3:
+                sizes = ["8", "16", "24", "32"];
+                break;
 
-        //     case 5:
-        //         sizes = ["8", "16", "24", "32", "40", "48"];
-        //         console.log("t")
+            case 4:
+                sizes = ["8", "16", "24", "32", "40"];
+                break;
 
-        //     case 6:
-        //         sizes = ["8", "16", "24", "32", "40", "48", "64"];
-        // }
+            case 5:
+                sizes = ["8", "16", "24", "32", "40", "48"];
+                break;
 
-        console.log(context.difficulty)
-        console.log(sizes)
+            case 6:
+                sizes = ["8", "16", "24", "32", "40", "48", "64"];
+                break;
+         }
+
         // Choose random bullet size
         var bulletType = sizes[Math.random() * sizes.length | 0];
         var bulletSize = ''
@@ -167,6 +171,8 @@ export class Game extends Phaser.Scene {
 
     collectStar(player, star) {
         star.destroy()
+        this.sfx = new Audio('assets/sfxStar.ogg');
+        this.sfx.play();
 
         // Stars are worth more based on the player's current score; late game stars are more valuable but harder to collect
         this.addScore(this, 10 + this.score/50)
@@ -189,11 +195,44 @@ export class Game extends Phaser.Scene {
     addScore(context, amount) {
         context.score += amount
         context.scoreText.setText('Score: ' + Math.round(context.score));
-        switch(context.difficulty) {
+        var boundary = 0
+        var newDifficulty = 0
+        var temp = context.difficulty;
+        switch(temp) {
             case 0:
-                if(context.score > 200) {
-                    context.difficulty = 1
-                }
+                boundary = 200;
+                newDifficulty = 1;
+                break;
+
+            case 1:
+                boundary = 400;
+                newDifficulty = 2;
+                break;
+
+            case 2:
+                boundary = 600;
+                newDifficulty = 3;
+                break;
+
+            case 3:
+                boundary = 900;
+                newDifficulty = 4;
+                break;
+
+            case 4:
+                boundary = 1200;
+                newDifficulty = 5;
+                break;
+
+            case 5:
+                boundary = 1500;
+                newDifficulty = 6;
+                break;
+        }
+        if(context.score >= boundary) {
+            context.difficulty = newDifficulty;
+            context.sfx = new Audio('assets/sfxDifficultyIncrease.ogg');
+            context.sfx.play();
         }
     }
 

@@ -38,8 +38,11 @@ export class Preloader extends Phaser.Scene {
         this.load.image('gameBg', 'gameBg.png');
         this.load.image('boundaryHorizontal', 'boundaryHorizontal.png');
         this.load.image('boundaryVertical', 'boundaryVertical.png');
-        this.load.audio('mscGame', 'mscGame.ogg');
         this.load.audio('mscMenu', 'mscMenu.ogg');
+        this.load.audio('mscGame', 'mscGame.ogg');
+        this.load.audio('mscGameOver', 'mscGameOver.ogg');
+        this.load.audio('sfxStar', 'sfxStar.ogg');
+        this.load.audio('sfxDifficultyIncrease', 'sfxDifficultyIncrease.ogg');
     }
 
     create() {
