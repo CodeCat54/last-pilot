@@ -1,13 +1,12 @@
 export class Game extends Phaser.Scene {
     constructor() {
         super('Game');
-
     }
 
 
     create() {
 
-        this.add.sprite(960, 540, 'gameBg');
+        this.gameBg = this.add.sprite(960, 540, 'gameBg');
 
         // Bullet and star collision groups
         this.bullets = this.physics.add.group();
@@ -22,32 +21,35 @@ export class Game extends Phaser.Scene {
         this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Display score
+        this.score = 0;
         this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '48px', fill: '#255' });
+
+        // Start music
+        this.music = new Audio('assets/mscGame.ogg');
+        this.music.play();
 
         // Collide the player with bullets and stars
         this.physics.add.overlap(this.player, this.bullets, this.hitBullet, null, this);
         this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
 
+        // Used to prevent infinite loops on death
+        this.gameOver = false;
+
         // Initiate bullet and star loops
-        this.startGame()
+        this.startGame();
     }
     
     startGame() {
-        var score = 0;
         var gameOver = false;
         var valid = true
-        var audio = new Audio('assets/mscGame.ogg');
-        audio.play();
 
-            // Call faster based on score
-            setTimeout(this.spawnBullet(score), 100-score/20)
-            setTimeout(this.spawnStar(score), 3000+score)
-
-        //}
+        // Call faster based on score
+        setTimeout(this.spawnBullet, 100-this.score/20, this)
+        setTimeout(this.spawnStar, 3000+this.score, this)
     }
 
 
-    spawnBullet(score) {
+    spawnBullet(context) {
         //Spawn randomly at the top of the screen
         var x = Phaser.Math.Between(0,1920);
 
@@ -59,35 +61,33 @@ export class Game extends Phaser.Scene {
         var sizes = [];
 
         // Every 200 score, add the next bullet size up to the random pool
-        if (score < 200) {
+        if (context.score < 200) {
             sizes = ["8"];
         }
 
-        else if (score >= 200 && score < 400) {
+        else if (context.score >= 200 && context.score < 400) {
                 sizes = ["8", "16"];
         }
 
-        else if (score >= 400 && score < 600) {
+        else if (context.score >= 400 && context.score < 600) {
                 sizes = ["8", "16", "24"];
         }
 
-        else if (score >= 600 && score < 800) {
+        else if (context.score >= 600 && context.score < 800) {
                 sizes = ["8", "16", "24", "32"];
         }
 
-        else if (score >= 800 && score < 1000) {
+        else if (context.score >= 800 && context.score < 1000) {
                 sizes = ["8", "16", "24", "32", "40"];
         }
 
-        else if (score >= 1000 && score < 1500) {
+        else if (context.score >= 1000 && context.score < 1500) {
                 sizes = ["8", "16", "24", "32", "40", "48"];
         }
 
-        else if (score >= 1500) {
+        else if (context.score >= 1500) {
                 sizes = ["8", "16", "24", "32", "40", "48", "64"];
         }
-
-        console.log(sizes)
 
         // Choose random bullet size
         var bulletType = sizes[Math.random() * sizes.length | 0];
@@ -123,45 +123,53 @@ export class Game extends Phaser.Scene {
                 bulletSize = 'bullet64';
                 break;
         }
-        var bullet = this.bullets.create(x, 0, bulletSize);
+        var bullet = context.bullets.create(x, 0, bulletSize);
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
+
+        if (!context.gameOver) {
+            setTimeout(context.spawnBullet, 100-context.score/20, context)
+        }
     }
 
 
-    spawnStar(score) {
+    spawnStar(context) {
         // Spawn randomly anywhere on the screen; not too close to the bullet spawn point or edge borders
         var x = Phaser.Math.Between(200,1870);
         var y = Phaser.Math.Between(50,1030);
-        var star = this.stars.create(x, y, 'star');
+        var star = context.stars.create(x, y, 'star');
+
+        if (!context.gameOver) {
+            setTimeout(context.spawnStar, 3000+context.score, context)
+        }
     }
 
 
     hitBullet(player, bullet) {
-        // Game over will stop bullets spawning
-        player.destroy();
-        gameOver = true;
-
         // 5 seconds after dying (bullet disappearance time) display end screen, show final score
-        setTimeout(displayEnd, 5000, this);
+        player.destroy();
+        this.gameOver = true;
+        setTimeout(this.displayEnd, 5000, this);
     }
 
 
-    collectStar(star, score) {
-        //star.destroy();
+    collectStar(player, star) {
+        star.destroy()
 
         // Stars are worth more based on the player's current score; late game stars are more valuable but harder to collect
-        score += 10 + (score/50);
+        this.score += 10 + (this.score/50);
+        this.scoreText.setText('Score: ' + Math.round(this.score));
     }
 
 
-    displayEnd(scene) {
-        end = scene.physics.add.sprite(960, 540, 'screenEnd');
-        scoreText = scene.add.text(650, 750, 'Final score: ' + Math.round(score), { fontSize: '64px', fill: '#150' });
+    displayEnd(context) {
+        context.gameBg.destroy();
+        context.music.pause();
+        context.scene.start('GameOver', {score: context.score});
     }
 
 
-    update(time) {
+    update() {
         // If game over, don't allow player movement
         if (this.gameOver) {
             return;

@@ -3,16 +3,24 @@ export class GameOver extends Phaser.Scene {
         super('GameOver');
     }
 
+    init(data) {
+        this.score = data.score;
+    }
+
+
     create() {
-        this.cameras.main.setBackgroundColor(0xff0000);
+        this.bg = this.physics.add.sprite(960, 540, 'screenEnd');
+        this.scoreText = this.add.text(650, 750, 'Final score: ' + Math.round(this.score), { fontSize: '64px', fill: '#150' });
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+        this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
 
-        this.add.text(512, 384, 'Game Over', {
-            fontFamily: 'Arial Black', fontSize: 64, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5);
 
+    update() {
+        if (this.keySpace.isDown) {
+            //this.bg.destroy();
+            //this.music.pause();
+            this.scene.start('MainMenu');
+        }
     }
 }

@@ -19,7 +19,7 @@ export class MainMenu extends Phaser.Scene {
 
     update() {
         if (this.keySpace.isDown) {
-            this.bg.destroy();
+            //this.bg.destroy();
             this.music.pause();
             this.scene.start('Game');
         }
