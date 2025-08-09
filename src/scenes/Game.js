@@ -5,12 +5,16 @@ export class Game extends Phaser.Scene {
 
 
     create() {
-
         this.gameBg = this.add.sprite(960, 540, 'gameBg');
 
         // Bullet and star collision groups
         this.bullets = this.physics.add.group();
         this.stars = this.physics.add.group();
+        this.boundaries = this.physics.add.group();
+
+        var boundary1 = this.boundaries.create(-4, 540, 'boundaryVertical');
+        var boundary2 = this.boundaries.create(1924, 540, 'boundaryVertical');
+        var boundary3 = this.boundaries.create(960, 1084, 'boundaryHorizontal');
 
         // Player creation and collision
         this.player = this.physics.add.sprite(960, 900, 'player');
@@ -18,6 +22,10 @@ export class Game extends Phaser.Scene {
 
         // Input Events
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Display score
@@ -31,11 +39,15 @@ export class Game extends Phaser.Scene {
         // Collide the player with bullets and stars
         this.physics.add.overlap(this.player, this.bullets, this.hitBullet, null, this);
         this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+        this.physics.add.overlap(this.bullets, this.boundaries, this.destroyBullet, null, this);
 
         // Used to prevent infinite loops on death
         this.gameOver = false;
 
+        this.difficulty = 0;
+
         // Initiate bullet and star loops
+        this.scoreTimer = setInterval(this.addScore, 100, this, 1);
         this.startGame();
     }
     
@@ -60,41 +72,40 @@ export class Game extends Phaser.Scene {
         var dirY = -(Math.cos(angle)) * 300;
         var sizes = [];
 
-        // Every 200 score, add the next bullet size up to the random pool
-        if (context.score < 200) {
+        // Difficulty decides bullet size pool
+        console.log(context.difficulty);
+        if(context.difficulty == 0) {
             sizes = ["8"];
         }
-
-        else if (context.score >= 200 && context.score < 400) {
-                sizes = ["8", "16"];
+        else if(context.difficulty == 1) {
+            sizes = ["8", "16"];
         }
 
-        else if (context.score >= 400 && context.score < 600) {
-                sizes = ["8", "16", "24"];
-        }
+        //     case 2:
+        //         sizes = ["8", "16", "24"];
 
-        else if (context.score >= 600 && context.score < 800) {
-                sizes = ["8", "16", "24", "32"];
-        }
+        //     case 3:
+        //         sizes = ["8", "16", "24", "32"];
 
-        else if (context.score >= 800 && context.score < 1000) {
-                sizes = ["8", "16", "24", "32", "40"];
-        }
+        //     case 4:
+        //         sizes = ["8", "16", "24", "32", "40"];
 
-        else if (context.score >= 1000 && context.score < 1500) {
-                sizes = ["8", "16", "24", "32", "40", "48"];
-        }
+        //     case 5:
+        //         sizes = ["8", "16", "24", "32", "40", "48"];
+        //         console.log("t")
 
-        else if (context.score >= 1500) {
-                sizes = ["8", "16", "24", "32", "40", "48", "64"];
-        }
+        //     case 6:
+        //         sizes = ["8", "16", "24", "32", "40", "48", "64"];
+        // }
 
+        console.log(context.difficulty)
+        console.log(sizes)
         // Choose random bullet size
         var bulletType = sizes[Math.random() * sizes.length | 0];
         var bulletSize = ''
 
         // Pick random bullet to spawn from available; break to avoid spawning multiple bullets at once
-        switch (bulletType) {
+        switch(bulletType) {
             case "8":
                 bulletSize = 'bullet8';
                 break;
@@ -149,6 +160,7 @@ export class Game extends Phaser.Scene {
         // 5 seconds after dying (bullet disappearance time) display end screen, show final score
         player.destroy();
         this.gameOver = true;
+        clearInterval(this.scoreTimer);
         setTimeout(this.displayEnd, 5000, this);
     }
 
@@ -157,8 +169,13 @@ export class Game extends Phaser.Scene {
         star.destroy()
 
         // Stars are worth more based on the player's current score; late game stars are more valuable but harder to collect
-        this.score += 10 + (this.score/50);
-        this.scoreText.setText('Score: ' + Math.round(this.score));
+        this.addScore(this, 10 + this.score/50)
+    }
+
+
+    destroyBullet(bullet, boundary) {
+        // Garbage collect bullets when leaving play area
+        bullet.destroy()
     }
 
 
@@ -166,6 +183,18 @@ export class Game extends Phaser.Scene {
         context.gameBg.destroy();
         context.music.pause();
         context.scene.start('GameOver', {score: context.score});
+    }
+
+
+    addScore(context, amount) {
+        context.score += amount
+        context.scoreText.setText('Score: ' + Math.round(context.score));
+        switch(context.difficulty) {
+            case 0:
+                if(context.score > 200) {
+                    context.difficulty = 1
+                }
+        }
     }
 
 
@@ -177,16 +206,12 @@ export class Game extends Phaser.Scene {
 
         // Player movement
         if (this.keyShift.isDown) {
-            this.player.setVelocityX(-200*(this.cursors.left.isDown-this.cursors.right.isDown))
-            this.player.setVelocityY(-200*(this.cursors.up.isDown-this.cursors.down.isDown))
+            this.player.setVelocityX(-200*((this.cursors.left.isDown | this.keyA.isDown) - (this.cursors.right.isDown | this.keyD.isDown)));
+            this.player.setVelocityY(-200*((this.cursors.up.isDown | this.keyW.isDown) - (this.cursors.down.isDown | this.keyS.isDown)));
         }
         else {
-            this.player.setVelocityX(-400*(this.cursors.left.isDown-this.cursors.right.isDown))
-            this.player.setVelocityY(-400*(this.cursors.up.isDown-this.cursors.down.isDown))
+            this.player.setVelocityX(-400*((this.cursors.left.isDown | this.keyA.isDown) - (this.cursors.right.isDown | this.keyD.isDown)));
+            this.player.setVelocityY(-400*((this.cursors.up.isDown | this.keyW.isDown) - (this.cursors.down.isDown | this.keyS.isDown)));
         }
-
-        // Add 0.1 score every step, round to nearest integer and display
-     //   score += 0.1
-     //   scoreText.setText('Score: ' + Math.round(score));
     }
 }

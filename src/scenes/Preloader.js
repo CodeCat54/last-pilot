@@ -36,6 +36,8 @@ export class Preloader extends Phaser.Scene {
         this.load.image('bullet48', 'bullet48.png');
         this.load.image('bullet64', 'bullet64.png');
         this.load.image('gameBg', 'gameBg.png');
+        this.load.image('boundaryHorizontal', 'boundaryHorizontal.png');
+        this.load.image('boundaryVertical', 'boundaryVertical.png');
         this.load.audio('mscGame', 'mscGame.ogg');
         this.load.audio('mscMenu', 'mscMenu.ogg');
     }
