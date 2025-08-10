@@ -43,6 +43,7 @@ export class Preloader extends Phaser.Scene {
         this.load.audio('mscGameOver', 'mscGameOver.ogg');
         this.load.audio('sfxStar', 'sfxStar.ogg');
         this.load.audio('sfxDifficultyIncrease', 'sfxDifficultyIncrease.ogg');
+        this.load.audio('sfxPlayerDeath', 'sfxPlayerDeath.ogg');
     }
 
     create() {

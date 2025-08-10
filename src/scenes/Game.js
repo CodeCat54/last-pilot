@@ -12,9 +12,9 @@ export class Game extends Phaser.Scene {
         this.stars = this.physics.add.group();
         this.boundaries = this.physics.add.group();
 
-        var boundary1 = this.boundaries.create(-4, 540, 'boundaryVertical');
-        var boundary2 = this.boundaries.create(1924, 540, 'boundaryVertical');
-        var boundary3 = this.boundaries.create(960, 1084, 'boundaryHorizontal');
+        var boundary1 = this.boundaries.create(-100, 600, 'boundaryVertical');
+        var boundary2 = this.boundaries.create(2000, 600, 'boundaryVertical');
+        var boundary3 = this.boundaries.create(960, 1200, 'boundaryHorizontal');
 
         // Player creation and collision
         this.player = this.physics.add.sprite(960, 900, 'player');
@@ -29,8 +29,8 @@ export class Game extends Phaser.Scene {
         this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Display score
-        this.score = 0;
-        this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '48px', fill: '#255' });
+        this.score = 1000;
+        this.scoreText = this.add.text(835, 10, 'Score: 0', { fontSize: '48px', fill: '#ffffff' });
 
         // Start music
         this.music = new Audio('assets/mscGame.ogg');
@@ -57,8 +57,8 @@ export class Game extends Phaser.Scene {
         var valid = true
 
         // Call faster based on score
-        setTimeout(this.spawnBullet, 100-this.score/20, this)
-        setTimeout(this.spawnStar, 3000+this.score, this)
+        this.bulletTimer = setTimeout(this.spawnBullet, 75, this);
+        this.starTimer = setTimeout(this.spawnStar, 3000+this.score, this);
     }
 
 
@@ -141,31 +141,34 @@ export class Game extends Phaser.Scene {
         var bullet = context.bullets.create(x, 0, bulletSize);
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
-
-        if (!context.gameOver) {
-            setTimeout(context.spawnBullet, 100-context.score/20, context)
-        }
+        console.log(75*(1-(Math.log10(2)/1000))^context.score);
+        context.bulletTimer = setTimeout(context.spawnBullet, 75*(1-(Math.log10(2)/1000))^context.score, context);
     }
 
 
     spawnStar(context) {
         // Spawn randomly anywhere on the screen; not too close to the bullet spawn point or edge borders
         var x = Phaser.Math.Between(200,1870);
-        var y = Phaser.Math.Between(50,1030);
+        var y = Phaser.Math.Between(200,1030);
         var star = context.stars.create(x, y, 'star');
 
         if (!context.gameOver) {
-            setTimeout(context.spawnStar, 3000+context.score, context)
+            context.starTimer = setTimeout(context.spawnStar, 3000+context.score, context)
         }
     }
 
 
     hitBullet(player, bullet) {
         // 5 seconds after dying (bullet disappearance time) display end screen, show final score
-        player.destroy();
+        player.disableBody(true, true);
         this.gameOver = true;
         clearInterval(this.scoreTimer);
-        setTimeout(this.displayEnd, 5000, this);
+        clearTimeout(this.starTimer);
+        clearTimeout(this.bulletTimer);
+        this.music.pause();
+        this.sfx = new Audio('assets/sfxPlayerDeath.ogg');
+        this.sfx.play();
+        setTimeout(this.displayEnd, 2000, this);
     }
 
 
@@ -187,7 +190,6 @@ export class Game extends Phaser.Scene {
 
     displayEnd(context) {
         context.gameBg.destroy();
-        context.music.pause();
         context.scene.start('GameOver', {score: context.score});
     }
 
@@ -197,8 +199,8 @@ export class Game extends Phaser.Scene {
         context.scoreText.setText('Score: ' + Math.round(context.score));
         var boundary = 0
         var newDifficulty = 0
-        var temp = context.difficulty;
-        switch(temp) {
+        var maxDifficulty = false;
+        switch(context.difficulty) {
             case 0:
                 boundary = 200;
                 newDifficulty = 1;
@@ -228,8 +230,12 @@ export class Game extends Phaser.Scene {
                 boundary = 1500;
                 newDifficulty = 6;
                 break;
+                
+            case 6:
+                maxDifficulty = true;
+                break;
         }
-        if(context.score >= boundary) {
+        if(context.score >= boundary && !maxDifficulty) {
             context.difficulty = newDifficulty;
             context.sfx = new Audio('assets/sfxDifficultyIncrease.ogg');
             context.sfx.play();
@@ -238,11 +244,6 @@ export class Game extends Phaser.Scene {
 
 
     update() {
-        // If game over, don't allow player movement
-        if (this.gameOver) {
-            return;
-        }
-
         // Player movement
         if (this.keyShift.isDown) {
             this.player.setVelocityX(-200*((this.cursors.left.isDown | this.keyA.isDown) - (this.cursors.right.isDown | this.keyD.isDown)));

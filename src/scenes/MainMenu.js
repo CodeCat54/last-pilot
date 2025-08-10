@@ -13,12 +13,12 @@ export class MainMenu extends Phaser.Scene {
             this.music.loop = true;
             this.music.play();
 
-            this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.keyEnter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     }
 
 
     update() {
-        if (this.keySpace.isDown) {
+        if (this.keyEnter.isDown) {
             //this.bg.destroy();
             this.music.pause();
             this.scene.start('Game');
