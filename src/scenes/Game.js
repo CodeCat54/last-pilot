@@ -29,7 +29,7 @@ export class Game extends Phaser.Scene {
         this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Display score
-        this.score = 1000;
+        this.score = 0;
         this.scoreText = this.add.text(835, 10, 'Score: 0', { fontSize: '48px', fill: '#ffffff' });
 
         // Start music
@@ -141,8 +141,12 @@ export class Game extends Phaser.Scene {
         var bullet = context.bullets.create(x, 0, bulletSize);
         bullet.setVelocityX(dirX);
         bullet.setVelocityY(dirY);
-        console.log(75*(1-(Math.log10(2)/1000))^context.score);
-        context.bulletTimer = setTimeout(context.spawnBullet, 75*(1-(Math.log10(2)/1000))^context.score, context);
+
+        // Spawn enemies relative to score. Exponential decay at rate decayConstant relative to breakmarkScore as the half life intervals.
+        var initialSpawnRate = 75;
+        var breakmarkScore = 1000;
+        var decayConstant = 1/2
+        context.bulletTimer = setTimeout(context.spawnBullet, (initialSpawnRate*(decayConstant**(context.score/breakmarkScore))), context);
     }
 
 
